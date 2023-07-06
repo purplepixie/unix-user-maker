@@ -214,3 +214,4 @@ done < $FILENAME
 
 echo
 echo "** User Maker Complete (created ${CREATEDCOUNT} users, set ${PASSWORDCOUNT} passwords (inc. new users), had ${ERRORCOUNT} errors **"
+exit ${ERRORCOUNT}
