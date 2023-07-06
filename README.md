@@ -1,7 +1,11 @@
 # Unix User Maker
 
-## Purpose
 A bash script to create Unix users (Linux, *BSD, ...) from a CSV file using ```useradd``` and ```chpasswd``` with a variety of options.
+
+## Licence and Author
+GNU GPL v3 or later - see LICENCE file in repository.
+
+(C) Copyright 2023 David Cutting, all rights reserved.
 
 ## Requirements
 
@@ -34,3 +38,46 @@ Make the script executable and then execute as normal. Only the ```filename``` o
 ```-v``` or ```--version``` output version information and exit.
 
 ```-?``` or ```--help``` display the help information (usage information) and exit.
+
+## Examples
+
+### Simple CSV File
+
+For example a simple CSV file called ```simple.csv``` containing no header row, without quoted fields and with the username in field 3 and password in field 4.
+
+```csv
+Some User,someuser@example.com,someuser,somePassword
+Another User,another@example.com,auser,hello there
+```
+
+The CSV execution could be *tested* (run without actual changes being made) by providing the ```filename```, ```userfield``` and ```passfield``` options:
+```
+./user-maker.sh --filename=simple.csv --userfield=3 --passfield=4
+```
+
+Once the output had been checked and changes are desired repeating the command with the ```--execute``` flag will action user creation and update:
+```
+./user-maker.sh --filename=simple.csv --userfield=3 --passfield=4 --execute
+```
+
+Any existing users will be un-touched because we have not passed the ```--setexistingpassword``` flag.
+
+### More Complex CSV File
+
+For example a CSV file called ```example.csv``` containing a header row and quoted fields with the username in field 3 and the password in field 4.
+
+```csv
+"Full Name","Email","Username","Password"
+"Some User","someuser@example.com","someuser","somePassword"
+"Another User","another@example.com","auser","hello there"
+```
+
+We could process this using the same options as above (```filename```, ```userfield``` and ```passfield```) with the addition of ```--header``` to ignore the first line/row and ```--stripquotes``` to remove the quotes from the data fields:
+```
+./user-maker.sh --filename=simple.csv --userfield=3 --passfield=4 --header --stripquotes
+```
+
+Again this will only show the proposed changes, adding ```--execute``` will cause these to be performed:
+```
+./user-maker.sh --filename=simple.csv --userfield=3 --passfield=4 --header --stripquotes --execute
+```
