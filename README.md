@@ -81,3 +81,11 @@ Again this will only show the proposed changes, adding ```--execute``` will caus
 ```
 ./user-maker.sh --filename=simple.csv --userfield=3 --passfield=4 --header --stripquotes --execute
 ```
+
+## Output and Termination
+
+The script will output a lot of information and keep count for the number of users created, passwords set, and errors encountered.
+
+If the command parameters are invalid (unknown command or missing ```filename``` for example) usage information will be displayed and the script will exit with code 1. If ```help``` or ```version``` are requested they will be displayed and the script will exit with 0 (no other processing will be completed).
+
+In the event the CSV file is processed the exit code will be the number of errors experienced (so exit code 0 means no errors, non-zero means errors).
