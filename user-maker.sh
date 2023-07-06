@@ -11,9 +11,9 @@
 ##                                                                           ##
 ## Project home and repo: https://github.com/purplepixie/unix-user-maker     ##
 ##                                                                           ##
-## Version: 0.01 06/07/2023                                                  ##
+## Version: see below                                                        ##
 ###############################################################################
-
+VERSION="0.01 06/07/2023"
 # Default Parameters
 FILENAME=""
 STRIP_QUOTES=0
@@ -26,6 +26,8 @@ EXECUTE=0
 # Usage Message
 function Usage() {
     echo "** Unix User Maker, github.com/purplepixie/unix-user-maker **"
+    echo "Version: ${VERSION}"
+    echo
     echo "Usage: ./user-maker.sh --filename=input.csv [options]"
     echo 
     echo "Options:"
@@ -43,6 +45,8 @@ function Usage() {
     echo "                     (default to 2), use = i.e. -uf=5"
     echo " -pf | --passfield   Set the field number (from 1) of the password"
     echo "                     (default to 3), use = i.e. -pf=5"
+    echo " -v | --version      Display version info and quit"
+    echo " -? | --help         Display this help info and quit"
 }
 
 # Strip first and last characters from a string
@@ -78,6 +82,20 @@ for i in "$@"; do
       HEADER_ROW=1
       shift # past argument with no value
       ;;
+    -e|--execute)
+      EXECUTE=1
+      shift # past argument with no value
+      ;;
+    -v|--version)
+      echo "Unix User Maker ${VERSION} https://github.com/purplepixie/unix-user-maker"
+      exit 0
+      shift # past argument with no value
+      ;;
+    -?|--help)
+      Usage
+      exit 0
+      shift # past argument with no value
+      ;;
     -sep|--setexistingpassword)
       SET_EXISTING_PASSWORD=1
       shift # past argument with no value
@@ -111,6 +129,12 @@ if [ ! -f "$FILENAME" ]; then
   exit 1
 fi
 
+echo "** User Maker Processing: ${FILENAME} **"
+
+CREATEDCOUNT=0
+PASSWORDCOUNT=0
+ERRORCOUNT=0
+
 # Read CSV file and loop
 FIRSTLINE=1
 while read -r line;
@@ -122,12 +146,14 @@ do
         fi
     fi
 
+    echo # blank line to delimit users
+
     USERNAME=$(echo $line | cut -d, -f${FIELD_USERNAME})
     PASSWORD=$(echo $line | cut -d, -f${FIELD_PASSWORD})
 
     if [ $STRIP_QUOTES -eq 1 ]; then
-        USERNAME=$(StripFirstLast $USERNAME)
-        PASSWORD=$(StripFirstLast $PASSWORD)
+        USERNAME=$(StripFirstLast "${USERNAME}")
+        PASSWORD=$(StripFirstLast "${PASSWORD}")
     fi
 
     USEREXISTS=0
@@ -157,7 +183,14 @@ do
         echo "useradd -m ${USERNAME}"
         if [ $EXECUTE -eq 1 ]; then
             useradd -m ${USERNAME}
-            echo "Executed."
+            if [ $? -ne 0 ]; then
+                echo "Error encountered adding user, skipping password."
+                ERRORCOUNT=$(($ERRORCOUNT + 1))
+                continue
+            else
+                echo "Executed."
+                CREATEDCOUNT=$(($CREATEDCOUNT + 1))
+            fi
         fi
     fi
 
@@ -165,9 +198,19 @@ do
         printf "%s:%s | chpasswd\n" "$USERNAME" "$PASSWORD" # example command line
         if [ $EXECUTE -eq 1 ]; then
             printf "%s:%s" "$USERNAME" "$PASSWORD" | chpasswd
-            echo "Executed."
+            if [ $? -ne 0 ]; then
+                echo "Error encountered setting password."
+                ERRORCOUNT=$(($ERRORCOUNT + 1))
+                continue
+            else
+                echo "Executed."
+                PASSWORDCOUNT=$(($PASSWORDCOUNT + 1))
+            fi
+            
         fi
     fi
 
-    #echo $USERNAME $PASSWORD
 done < $FILENAME
+
+echo
+echo "** User Maker Complete (created ${CREATEDCOUNT} users, set ${PASSWORDCOUNT} passwords (inc. new users), had ${ERRORCOUNT} errors **"
