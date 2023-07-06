@@ -155,12 +155,18 @@ do
 
     if [ $CREATEUSER -eq 1 ]; then
         echo "useradd -m ${USERNAME}"
-        ##
+        if [ $EXECUTE -eq 1 ]; then
+            useradd -m ${USERNAME}
+            echo "Executed."
+        fi
     fi
 
     if [ $SETPASSWORD -eq 1 ]; then
         printf "%s:%s | chpasswd\n" "$USERNAME" "$PASSWORD" # example command line
-        ##
+        if [ $EXECUTE -eq 1 ]; then
+            printf "%s:%s" "$USERNAME" "$PASSWORD" | chpasswd
+            echo "Executed."
+        fi
     fi
 
     #echo $USERNAME $PASSWORD
